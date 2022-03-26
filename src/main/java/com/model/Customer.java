@@ -9,7 +9,7 @@ public class Customer {
   private String surname;
   private String phone_number;
   private String email;
-  private  List<Service> service_List;
+  private  List<Subscription> service_List;
   private Wallet wallet;
 
 }
