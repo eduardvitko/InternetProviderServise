@@ -1,0 +1,9 @@
+<Configuration status="debug" name="isp" packages="">
+    <Appenders>
+        <File name="fout" fileName="isp.log" append="true">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %m%nw</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+</Configuration>
