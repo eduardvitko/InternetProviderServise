@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDao implements Dao<User> {
@@ -78,12 +79,10 @@ public class UserDao implements Dao<User> {
             resultSet.next();
 
 
-
-           user.setPhone(resultSet.getString("phone"));
-           user.setPassword(resultSet.getString("password"));
-           user.setActive(resultSet.getBoolean("isActive"));
-           user.setRole(Role.valueOf(resultSet.getString("role")));
-
+            user.setPhone(resultSet.getString("phone"));
+            user.setPassword(resultSet.getString("password"));
+            user.setActive(resultSet.getBoolean("isActive"));
+            user.setRole(Role.valueOf(resultSet.getString("role")));
 
 
             con.close();
@@ -109,6 +108,38 @@ public class UserDao implements Dao<User> {
 
     @Override
     public List<User> getAll() {
-        return null;
+        List<User> userList = new ArrayList<>();
+        logger.debug("Start  searching all users....");
+
+
+        try {
+            Connection con = getConnection();
+
+            PreparedStatement ps = con.prepareStatement(
+                    "select * from users");
+
+
+            ResultSet result = ps.executeQuery();
+
+            while (result.next()) {
+                User user = new User();
+                user.setId(result.getInt("id"));
+                user.setPhone(result.getString("phone"));
+                user.setPassword(result.getString("password"));
+                user.setActive(result.getBoolean("isActive"));
+                user.setRole(Role.valueOf(result.getString("role")));
+//                user.setCreated(Date.valueOf(result.getDate());
+//                user.setUpdated(Date.valueOf(result.getDate()));
+
+            }
+
+            con.close();
+        } catch (Exception ex) {
+            logger.debug("Problem with searching all users: " + ex.getMessage());
+        }
+
+        logger.debug("All Users searched");
+
+        return userList;
     }
 }
