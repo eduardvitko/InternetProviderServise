@@ -1,5 +1,6 @@
 package com.model;
 
+import java.sql.Date;
 import java.time.LocalDate;
 
 
@@ -56,7 +57,7 @@ public class User {
         return created;
     }
 
-    public void setCreated(LocalDate created) {
+    public void setCreated() {
         this.created = created;
     }
 
@@ -64,7 +65,7 @@ public class User {
         return updated;
     }
 
-    public void setUpdated(LocalDate updated) {
+    public void setUpdated() {
         this.updated = updated;
     }
 }
