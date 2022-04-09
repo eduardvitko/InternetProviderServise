@@ -42,8 +42,8 @@ public class UserDao implements Dao<User> {
             ps.setString(3, user.getPassword());
             ps.setBoolean(4, user.isActive());
             ps.setString(5, String.valueOf(user.getRole()));
-            ps.setDate(6, Date.valueOf(user.getCreated()));
-            ps.setDate(7, Date.valueOf(user.getUpdated()));
+            ps.setDate(6, user.getCreated());
+            ps.setDate(7, user.getUpdated());
 
             int status = ps.executeUpdate();
             if (status != 1) throw new UserException("Created more than one record!!");
@@ -83,6 +83,8 @@ public class UserDao implements Dao<User> {
             user.setPassword(resultSet.getString("password"));
             user.setActive(resultSet.getBoolean("isActive"));
             user.setRole(Role.valueOf(resultSet.getString("role")));
+            user.setCreated(resultSet.getDate("created"));
+            user.setUpdated(resultSet.getDate("updated"));
 
 
             con.close();
@@ -114,10 +116,11 @@ public class UserDao implements Dao<User> {
             ps.setString(2, user.getPhone());
 
 
-
             update_user.setPassword(user.getPassword());
             update_user.setActive(user.isActive());
             update_user.setRole(Role.valueOf(String.valueOf(user.getRole())));
+            update_user.setCreated(user.getCreated());
+            update_user.setUpdated(user.getUpdated());
 
             status = ps.executeUpdate();
             if (status != 1) throw new UserException("Updated more than one record!!");
@@ -134,7 +137,7 @@ public class UserDao implements Dao<User> {
     @Override
     public boolean delete(int id) {
 
-        boolean status = false;
+        boolean status_boolean = false;
         logger.debug("Start user deleting....");
 
 
@@ -146,16 +149,21 @@ public class UserDao implements Dao<User> {
 
             ps.setInt(1, id);
 
-
+            int status = ps.executeUpdate();
+            if(status==1){
+                status_boolean=true;
+            }
+            if (status != 1) throw new UserException("Deleted more than one record!!");
             con.close();
         } catch (Exception ex) {
             logger.debug("Problem with deleting user: " + ex.getMessage());
         }
 
         logger.debug("User deleted");
-        return status;
+        return status_boolean;
     }
-        @Override
+
+    @Override
     public List<User> getAll() {
         List<User> userList = new ArrayList<>();
         logger.debug("Start  searching all users....");
@@ -177,8 +185,8 @@ public class UserDao implements Dao<User> {
                 user.setPassword(result.getString("password"));
                 user.setActive(result.getBoolean("isActive"));
                 user.setRole(Role.valueOf(result.getString("role")));
-//                user.setCreated(Date.valueOf(result.getDate());
-//                user.setUpdated(Date.valueOf(result.getDate()));
+                user.setCreated(result.getDate("created"));
+                user.setUpdated(result.getDate("updated"));
 
             }
 

@@ -10,8 +10,8 @@ public class User {
     private String password;
     private boolean isActive;
     private Role role;
-    private LocalDate created;
-    private LocalDate updated;
+    private Date created;
+    private Date updated;
 
     public int getId() {
         return id;
@@ -53,19 +53,19 @@ public class User {
         this.role = role;
     }
 
-    public LocalDate getCreated() {
+    public Date getCreated() {
         return created;
     }
 
-    public void setCreated() {
+    public void setCreated(Date created) {
         this.created = created;
     }
 
-    public LocalDate getUpdated() {
+    public Date getUpdated() {
         return updated;
     }
 
-    public void setUpdated() {
+    public void setUpdated(Date updated) {
         this.updated = updated;
     }
 }
