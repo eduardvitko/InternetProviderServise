@@ -134,7 +134,26 @@ public class UserDao implements Dao<User> {
     @Override
     public boolean delete(int id) {
 
-        return true;
+        boolean status = false;
+        logger.debug("Start user deleting....");
+
+
+        try {
+            Connection con = getConnection();
+
+            PreparedStatement ps = con.prepareStatement(
+                    "DELETE FROM users WHERE id=?");
+
+            ps.setInt(1, id);
+
+
+            con.close();
+        } catch (Exception ex) {
+            logger.debug("Problem with deleting user: " + ex.getMessage());
+        }
+
+        logger.debug("User deleted");
+        return status;
     }
         @Override
     public List<User> getAll() {
