@@ -97,16 +97,46 @@ public class UserDao implements Dao<User> {
     }
 
     @Override
-    public int update(User item) {
-        return 0;
+    public int update(User user) {
+
+        User update_user = new User();
+        int status = 0;
+
+        logger.debug("Start user updating....");
+
+
+        try {
+            Connection con = getConnection();
+
+            PreparedStatement ps = con.prepareStatement(
+                    "UPDATE users SET item=? WHERE phone=?");
+
+            ps.setString(2, user.getPhone());
+
+
+
+            update_user.setPassword(user.getPassword());
+            update_user.setActive(user.isActive());
+            update_user.setRole(Role.valueOf(String.valueOf(user.getRole())));
+
+            status = ps.executeUpdate();
+            if (status != 1) throw new UserException("Updated more than one record!!");
+
+            con.close();
+        } catch (Exception ex) {
+            logger.debug("Problem with updating user: " + ex.getMessage());
+        }
+
+        logger.debug("User updated");
+        return status;
     }
 
     @Override
     public boolean delete(int id) {
-        return false;
-    }
 
-    @Override
+        return true;
+    }
+        @Override
     public List<User> getAll() {
         List<User> userList = new ArrayList<>();
         logger.debug("Start  searching all users....");
