@@ -1,17 +1,31 @@
 package com.model;
 
-import java.sql.Date;
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 
-public class User {
+public class User  {
     private int id;
     private String phone;
     private String password;
     private boolean isActive;
     private Role role;
-    private Date created;
-    private Date updated;
+    private LocalDateTime created;
+    private LocalDateTime updated;
+
+    public User() {
+    }
+
+    public User(String phone, String password) {
+        this.phone = phone;
+        this.password = password;
+    }
+
+    public Timestamp convertToTimestamp(LocalDateTime date){
+        if(date == null) date = LocalDateTime.now();
+        return Timestamp.valueOf(date);
+    }
+
 
     public int getId() {
         return id;
@@ -53,19 +67,41 @@ public class User {
         this.role = role;
     }
 
-    public Date getCreated() {
+    public LocalDateTime getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(LocalDateTime created) {
         this.created = created;
     }
 
-    public Date getUpdated() {
+    public LocalDateTime getUpdated() {
         return updated;
     }
 
-    public void setUpdated(Date updated) {
+    public void setUpdated(LocalDateTime updated) {
         this.updated = updated;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id" + ":" + id +", "+
+                "phone" +":"+ phone+", "+
+                "password" +":" + password +", "+
+                "isActive" + ":" +isActive +", "+
+                "role" + ":" +role +", "+
+                "created" + ":" + created +", "+
+                "updated" + ":" + updated+"}";
     }
 }

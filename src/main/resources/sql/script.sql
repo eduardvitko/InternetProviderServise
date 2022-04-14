@@ -11,6 +11,7 @@ create table users
     phone    varchar(16)  not null unique,
     password varchar(100) not null,
     isActive boolean   default true,
+    role     varchar(10),
     created  timestamp default now(),
     updated  timestamp default now() on update NOW(),
     primary key (id)
@@ -52,14 +53,14 @@ create table tariffs
 );
 create table limits
 (
-    id       int(10) primary key auto_increment,
-    name     varchar(25) not null unique,
-    amount   int(10)     not null,
-    isActive boolean   default true,
-    created  timestamp default now(),
-    updated  timestamp default now() on update NOW(),
+    id         int(10) primary key auto_increment,
+    name       varchar(25) not null unique,
+    amount     int(10)     not null,
+    isActive   boolean   default true,
+    created    timestamp default now(),
+    updated    timestamp default now() on update NOW(),
     tariffs_id int(10),
-    foreign key (tariffs_id) references tariffs(id)
+    foreign key (tariffs_id) references tariffs (id)
 );
 
 

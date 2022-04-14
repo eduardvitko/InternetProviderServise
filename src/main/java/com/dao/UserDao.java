@@ -8,47 +8,38 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserDao implements Dao<User> {
-
+    private static final String CREATE_QUERY = "insert into users(id,phone,password,isActive,role,created,updated) values (?,?,?,?,?,?,?)";
+    private static final String FIND_BY_FIELD_QUERY = "select * from users where value =?";
+    private static final String UPDATE_QUERY = "UPDATE users SET item=? WHERE id=?";
+    private static final String DELETE_QUERY = "DELETE FROM users WHERE id=?";
+    private static final String FIND_ALL_QUERY = "select * from users";
     private static Logger logger = LogManager.getLogger(UserDao.class);
 
-    public static Connection getConnection() {
-        Connection con = null;
-        try {
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-            logger.debug("Connecting to data base...");
-            con = DriverManager.getConnection("jdbc:mysql:@localhost:3306:internet_provider_base", "root", "root");
-        } catch (Exception e) {
-            logger.debug("Problem with connection to data base: " + e.getMessage());
-        }
-        return con;
-    }
 
     @Override
     public User create(User user) {
         logger.debug("Start user creating");
 
 
-        try {
-            Connection con = getConnection();
+        try (Connection con = DataSource.getConnection();
+             PreparedStatement pst = con.prepareStatement(CREATE_QUERY);) {
+            pst.setInt(1, user.getId());
+            pst.setString(2, user.getPhone());
+            pst.setString(3, user.getPassword());
+            pst.setBoolean(4, user.isActive());
+            pst.setString(5, String.valueOf(user.getRole()));
+            pst.setTimestamp(6, user.convertToTimestamp(user.getCreated()));
+            pst.setTimestamp(7, user.convertToTimestamp(user.getUpdated()));
 
-            PreparedStatement ps = con.prepareStatement(
-                    "insert into user(id,phone,password,isActive,role,created,updated) values (?,?,?,?,?,?,?)");
-            ps.setInt(1, user.getId());
-            ps.setString(2, user.getPhone());
-            ps.setString(3, user.getPassword());
-            ps.setBoolean(4, user.isActive());
-            ps.setString(5, String.valueOf(user.getRole()));
-            ps.setDate(6, user.getCreated());
-            ps.setDate(7, user.getUpdated());
-
-            int status = ps.executeUpdate();
+            int status = pst.executeUpdate();
             if (status != 1) throw new UserException("Created more than one record!!");
 
-            con.close();
         } catch (Exception ex) {
             logger.debug("Problem with creating user: " + ex.getMessage());
         }
@@ -67,15 +58,12 @@ public class UserDao implements Dao<User> {
         logger.debug("Start user searching....");
 
 
-        try {
-            Connection con = getConnection();
+        try (Connection con = DataSource.getConnection();
+             PreparedStatement pst = con.prepareStatement(FIND_BY_FIELD_QUERY);) {
 
-            PreparedStatement ps = con.prepareStatement(
-                    "select * from users where value =?");
+            pst.setString(1, value);
 
-            ps.setString(1, value);
-
-            ResultSet resultSet = ps.executeQuery();
+            ResultSet resultSet = pst.executeQuery();
             resultSet.next();
 
 
@@ -83,11 +71,10 @@ public class UserDao implements Dao<User> {
             user.setPassword(resultSet.getString("password"));
             user.setActive(resultSet.getBoolean("isActive"));
             user.setRole(Role.valueOf(resultSet.getString("role")));
-            user.setCreated(resultSet.getDate("created"));
-            user.setUpdated(resultSet.getDate("updated"));
+            user.setCreated(user.getCreated());
+            user.setUpdated(user.getUpdated());
 
 
-            con.close();
         } catch (Exception ex) {
             logger.debug("Problem with searching user: " + ex.getMessage());
         }
@@ -101,32 +88,25 @@ public class UserDao implements Dao<User> {
     @Override
     public int update(User user) {
 
-        User update_user = new User();
         int status = 0;
-
         logger.debug("Start user updating....");
+        try (Connection con = DataSource.getConnection();
+             PreparedStatement pst = con.prepareStatement(UPDATE_QUERY);) {
+            pst.setInt(1, user.getId());
 
+            user.setPhone(user.getPhone());
+            user.setPassword(user.getPassword());
+            user.setActive(user.isActive());
+            user.setRole(Role.valueOf(String.valueOf(user.getRole())));
+            user.setCreated(user.getCreated());
+            user.setUpdated(user.getUpdated());
 
-        try {
-            Connection con = getConnection();
-
-            PreparedStatement ps = con.prepareStatement(
-                    "UPDATE users SET item=? WHERE phone=?");
-
-            ps.setString(2, user.getPhone());
-
-
-            update_user.setPassword(user.getPassword());
-            update_user.setActive(user.isActive());
-            update_user.setRole(Role.valueOf(String.valueOf(user.getRole())));
-            update_user.setCreated(user.getCreated());
-            update_user.setUpdated(user.getUpdated());
-
-            status = ps.executeUpdate();
+            status = pst.executeUpdate();
             if (status != 1) throw new UserException("Updated more than one record!!");
 
-            con.close();
+
         } catch (Exception ex) {
+
             logger.debug("Problem with updating user: " + ex.getMessage());
         }
 
@@ -140,18 +120,13 @@ public class UserDao implements Dao<User> {
         boolean status_boolean = false;
         logger.debug("Start user deleting....");
 
+        try (Connection con = DataSource.getConnection();
+             PreparedStatement pst = con.prepareStatement(DELETE_QUERY);) {
+            pst.setInt(1, id);
 
-        try {
-            Connection con = getConnection();
-
-            PreparedStatement ps = con.prepareStatement(
-                    "DELETE FROM users WHERE id=?");
-
-            ps.setInt(1, id);
-
-            int status = ps.executeUpdate();
-            if(status==1){
-                status_boolean=true;
+            int status = pst.executeUpdate();
+            if (status == 1) {
+                status_boolean = true;
             }
             if (status != 1) throw new UserException("Deleted more than one record!!");
             con.close();
@@ -169,14 +144,9 @@ public class UserDao implements Dao<User> {
         logger.debug("Start  searching all users....");
 
 
-        try {
-            Connection con = getConnection();
-
-            PreparedStatement ps = con.prepareStatement(
-                    "select * from users");
-
-
-            ResultSet result = ps.executeQuery();
+        try (Connection con = DataSource.getConnection();
+             PreparedStatement pst = con.prepareStatement(FIND_ALL_QUERY);) {
+            ResultSet result = pst.executeQuery();
 
             while (result.next()) {
                 User user = new User();
@@ -185,12 +155,12 @@ public class UserDao implements Dao<User> {
                 user.setPassword(result.getString("password"));
                 user.setActive(result.getBoolean("isActive"));
                 user.setRole(Role.valueOf(result.getString("role")));
-                user.setCreated(result.getDate("created"));
-                user.setUpdated(result.getDate("updated"));
+                user.setCreated(LocalDateTime.parse(result.getString("created")));
+                user.setUpdated(LocalDateTime.parse(result.getString("updated")));
 
             }
 
-            con.close();
+
         } catch (Exception ex) {
             logger.debug("Problem with searching all users: " + ex.getMessage());
         }
