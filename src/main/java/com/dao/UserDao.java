@@ -1,5 +1,6 @@
 package com.dao;
 
+import com.dto.UserDto;
 import com.exceptions.UserException;
 import com.model.Role;
 import com.model.User;
@@ -15,9 +16,9 @@ import java.util.List;
 
 public class UserDao implements Dao<User> {
     private static final String CREATE_QUERY = "insert into users(id,phone,password,isActive,role,created,updated) values (?,?,?,?,?,?,?)";
-    private static final String FIND_BY_FIELD_QUERY = "select * from users where value =?";
+    private static final String FIND_BY_FIELD_QUERY = "select * from users where phone = ?";
     private static final String UPDATE_QUERY = "UPDATE users SET item=? WHERE id=?";
-    private static final String DELETE_QUERY = "DELETE FROM users WHERE id=?";
+    private static final String DELETE_QUERY = "DELETE  FROM users WHERE id=?";
     private static final String FIND_ALL_QUERY = "select * from users";
     private static Logger logger = LogManager.getLogger(UserDao.class);
 
@@ -25,6 +26,10 @@ public class UserDao implements Dao<User> {
     @Override
     public User create(User user) {
         logger.debug("Start user creating");
+        if (user == null) {
+            logger.error("user not found");
+            throw new UserException("user is not found");
+        }
 
 
         try (Connection con = DataSource.getConnection();
@@ -46,7 +51,7 @@ public class UserDao implements Dao<User> {
 
         logger.debug("User created");
 
-
+        System.out.println(user.toString());
         return user;
     }
 
@@ -71,8 +76,8 @@ public class UserDao implements Dao<User> {
             user.setPassword(resultSet.getString("password"));
             user.setActive(resultSet.getBoolean("isActive"));
             user.setRole(Role.valueOf(resultSet.getString("role")));
-            user.setCreated(user.getCreated());
-            user.setUpdated(user.getUpdated());
+            user.setCreated(LocalDateTime.parse(resultSet.getString("created")));
+            user.setUpdated(LocalDateTime.parse(resultSet.getString("updated")));
 
 
         } catch (Exception ex) {
@@ -81,27 +86,30 @@ public class UserDao implements Dao<User> {
 
         logger.debug("User searched");
 
-
+        System.out.println(user.toString());
         return user;
+
     }
 
-    @Override
-    public int update(User user) {
 
-        int status = 0;
+    @Override
+    public User update(User user) {
+        User user1 = new User();
+
+
         logger.debug("Start user updating....");
         try (Connection con = DataSource.getConnection();
              PreparedStatement pst = con.prepareStatement(UPDATE_QUERY);) {
-            pst.setInt(1, user.getId());
+            pst.setInt(1, user1.getId());
 
-            user.setPhone(user.getPhone());
-            user.setPassword(user.getPassword());
-            user.setActive(user.isActive());
-            user.setRole(Role.valueOf(String.valueOf(user.getRole())));
-            user.setCreated(user.getCreated());
-            user.setUpdated(user.getUpdated());
+            user1.setPhone(user.getPhone());
+            user1.setPassword(user.getPassword());
+            user1.setActive(user.isActive());
+            user1.setRole(Role.valueOf(String.valueOf(user.getRole())));
+            user1.setCreated(user.getCreated());
+            user1.setUpdated(user.getUpdated());
 
-            status = pst.executeUpdate();
+            int status = pst.executeUpdate();
             if (status != 1) throw new UserException("Updated more than one record!!");
 
 
@@ -111,7 +119,7 @@ public class UserDao implements Dao<User> {
         }
 
         logger.debug("User updated");
-        return status;
+        return user1;
     }
 
     @Override
@@ -139,17 +147,19 @@ public class UserDao implements Dao<User> {
     }
 
     @Override
-    public List<User> getAll() {
-        List<User> userList = new ArrayList<>();
-        logger.debug("Start  searching all users....");
+    public List<User> getAllUsers() {
 
+
+        logger.debug("Start  searching all users....");
+        List<User> userList = null;
 
         try (Connection con = DataSource.getConnection();
              PreparedStatement pst = con.prepareStatement(FIND_ALL_QUERY);) {
             ResultSet result = pst.executeQuery();
-
+            userList = new ArrayList<>();
+            User user = null;
             while (result.next()) {
-                User user = new User();
+                user = new User();
                 user.setId(result.getInt("id"));
                 user.setPhone(result.getString("phone"));
                 user.setPassword(result.getString("password"));
@@ -157,6 +167,7 @@ public class UserDao implements Dao<User> {
                 user.setRole(Role.valueOf(result.getString("role")));
                 user.setCreated(LocalDateTime.parse(result.getString("created")));
                 user.setUpdated(LocalDateTime.parse(result.getString("updated")));
+                userList.add(user);
 
             }
 
@@ -166,6 +177,7 @@ public class UserDao implements Dao<User> {
         }
 
         logger.debug("All Users searched");
+        System.out.println(userList);
 
         return userList;
     }

@@ -1,6 +1,7 @@
 package com.servlets;
 
 import com.dto.UserCreateRequestDto;
+import com.exceptions.UserException;
 import com.model.User;
 import services.UserService;
 import services.UserServiceImpl;
@@ -25,7 +26,5 @@ public class UserRegistrationServlet extends HttpServlet {
         UserCreateRequestDto user = new UserCreateRequestDto(phone,password, conf_password);
 
         userService.registration(user);
-
-
     }
 }
